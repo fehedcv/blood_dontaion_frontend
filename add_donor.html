@@ -29,7 +29,7 @@
         <input type="text" id="location" placeholder="Enter donor's location"
             class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
 
-        <input type="tel" id="phone" placeholder="Enter donor's phone number"
+        <input type="tel" id="phone" placeholder="Enter donor's phone number (10 digits)"
             class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
 
         <button id="add-donor-btn"
@@ -37,7 +37,7 @@
             ➕ Add Donor
         </button>
 
-        <button onclick="location.href='/dashboard'"
+        <button onclick="navigate('/dashboard')"
             class="w-full bg-gray-500 text-white py-2 rounded mt-4 hover:bg-gray-600 transition">
             ⬅ Back to Dashboard
         </button>
@@ -48,16 +48,55 @@
         <img src="loading.gif" alt="Loading..." class="w-16 h-16">
     </div>
 
+    <!-- Custom Popup Modal -->
+    <div id="popup" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <p id="popup-message" class="text-gray-700 text-lg"></p>
+            <button onclick="closePopup()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">OK</button>
+        </div>
+    </div>
+
     <script>
-        document.getElementById("add-donor-btn").addEventListener("click", async function() {
-            const name = document.getElementById("name").value;
+        function sanitizeInput(input) {
+            return input.replace(/[<>/'"]/g, ""); // Prevent XSS by removing special chars
+        }
+
+        function showPopup(message, callback = null) {
+            document.getElementById("popup-message").textContent = message;
+            document.getElementById("popup").classList.remove("hidden");
+
+            setTimeout(() => {
+                closePopup();
+                if (callback) callback();
+            }, 2000); // Auto-close after 2 seconds
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.add("hidden");
+        }
+
+        function navigate(url) {
+            document.getElementById("loading-screen").classList.remove("hidden"); // Show loading
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000); // Simulate loading
+        }
+
+        document.getElementById("add-donor-btn").addEventListener("click", async function () {
+            const name = sanitizeInput(document.getElementById("name").value.trim());
             const bloodType = document.getElementById("blood-type").value;
-            const location = document.getElementById("location").value;
-            const phone = document.getElementById("phone").value;
+            const location = sanitizeInput(document.getElementById("location").value.trim());
+            const phone = document.getElementById("phone").value.trim();
             const loadingScreen = document.getElementById("loading-screen");
 
+            // Validation
             if (!name || !bloodType || !location || !phone) {
-                alert("❌ All fields are required!");
+                showPopup("❌ All fields are required!");
+                return;
+            }
+
+            if (!/^\d{10}$/.test(phone)) {
+                showPopup("❌ Phone number must be exactly 10 digits!");
                 return;
             }
 
@@ -70,26 +109,25 @@
                     body: JSON.stringify({ name, blood_type: bloodType, location, phone })
                 });
 
-                const text = await response.text(); // Get raw response text
+                const text = await response.text();
                 console.log("Raw Response:", text); // Debugging
 
                 let result;
                 try {
-                    result = JSON.parse(text); // Manually parse JSON
+                    result = JSON.parse(text);
                 } catch (err) {
                     console.error("JSON Parse Error:", err);
-                    alert("❌ Server returned an unexpected response!");
+                    showPopup("❌ Server returned an unexpected response!");
                     return;
                 }
 
                 if (result.success) {
-                    alert("✅ Donor added successfully!");
-                    window.location.href = "/dashboard"; // Redirect to Dashboard
+                    showPopup("✅ Donor added successfully!", () => navigate("/dashboard"));
                 } else {
-                    alert("❌ Error: " + result.error);
+                    showPopup("❌ Error: " + result.error);
                 }
             } catch (error) {
-                alert("❌ Error: " + error.message);
+                showPopup("❌ Error: " + error.message);
             } finally {
                 loadingScreen.classList.add("hidden"); // Hide loading
             }
