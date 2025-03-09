@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Donation - Signup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-red-100">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold text-red-600 text-center mb-6">Sign Up</h2>
+
+        <input type="email" id="email" placeholder="Enter your email"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <input type="password" id="password" placeholder="Enter your password"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <input type="password" id="confirm-password" placeholder="Re-enter your password"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <button id="signup-btn"
+            class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">Sign Up</button>
+
+        <p class="text-center mt-4 text-gray-600">
+            Already have an account? <a href="/" class="text-red-500 font-semibold">Login</a>
+        </p>
+    </div>
+
+    <!-- Loading Screen (Hidden Initially) -->
+    <div id="loading-screen" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 hidden">
+        <img src="loading.gif" alt="Loading..." class="w-16 h-16">
+    </div>
+
+    <script>
+        document.getElementById("signup-btn").addEventListener("click", async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+            const loadingScreen = document.getElementById("loading-screen");
+
+            if (password !== confirmPassword) {
+                alert("❌ Passwords do not match!");
+                return;
+            }
+
+            loadingScreen.classList.remove("hidden"); // Show loading screen
+
+            try {
+                const response = await fetch("https://blood-donation-oe1d.onrender.com/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("✅ Signup Successful! Redirecting to login...");
+                    window.location.href = "/"; // Redirect to login
+                } else {
+                    alert("❌ Signup Failed: " + result.error);
+                }
+            } catch (error) {
+                alert("❌ Error: " + error.message);
+            } finally {
+                loadingScreen.classList.add("hidden"); // Hide loading
+            }
+        });
+    </script>
+
+</body>
+</html>

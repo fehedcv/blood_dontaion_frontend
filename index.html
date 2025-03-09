@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Donation - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-red-100">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold text-red-600 text-center mb-6">Login</h2>
+
+        <input type="email" id="email" placeholder="Enter your email"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <input type="password" id="password" placeholder="Enter your password"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <button id="login-btn"
+            class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">Login</button>
+
+        <p class="text-center mt-4 text-gray-600">
+            Don't have an account? <a href="/signup" class="text-red-500 font-semibold">Sign Up</a>
+        </p>
+    </div>
+
+    <!-- Loading Screen (Hidden Initially) -->
+    <div id="loading-screen" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 hidden">
+        <img src="loading.gif" alt="Loading..." class="w-16 h-16">
+    </div>
+
+    <script>
+        document.getElementById("login-btn").addEventListener("click", async function() {
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const loadingScreen = document.getElementById("loading-screen");
+
+            if (!email || !password) {
+                alert("❌ Please enter both email and password!");
+                return;
+            }
+
+            loadingScreen.classList.remove("hidden"); // Show loading
+
+            try {
+                const response = await fetch("https://blood-donation-oe1d.onrender.com/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const text = await response.text();  // Get raw response first
+                console.log("🔹 Raw Response:", text); // Debug output
+
+                try {
+                    const result = JSON.parse(text); // Try parsing JSON manually
+
+                    if (result.success) {
+                        alert("✅ Login Successful!");
+                        window.location.href = "/dashboard"; 
+                    } else {
+                        alert("❌ Login Failed: " + result.message);
+                    }
+                } catch (jsonError) {
+                    console.error("❌ JSON Parsing Error:", jsonError);
+                    alert("❌ Server error: Unable to parse response. Check console for details.");
+                }
+            } catch (error) {
+                alert("❌ Network Error: " + error.message);
+            } finally {
+                loadingScreen.classList.add("hidden"); // Hide loading screen
+            }
+        });
+    </script>
+
+</body>
+</html>

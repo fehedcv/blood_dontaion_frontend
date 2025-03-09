@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Donor - Blood Donation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-red-100">
+
+    <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold text-red-600 text-center mb-6">Add Donor</h2>
+
+        <input type="text" id="name" placeholder="Enter donor's name"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <select id="blood-type" class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+            <option value="" disabled selected>Select blood type</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+        </select>
+
+        <input type="text" id="location" placeholder="Enter donor's location"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <input type="tel" id="phone" placeholder="Enter donor's phone number"
+            class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
+
+        <button id="add-donor-btn"
+            class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">
+            ➕ Add Donor
+        </button>
+
+        <button onclick="location.href='/dashboard'"
+            class="w-full bg-gray-500 text-white py-2 rounded mt-4 hover:bg-gray-600 transition">
+            ⬅ Back to Dashboard
+        </button>
+    </div>
+
+    <!-- Loading Screen (Hidden Initially) -->
+    <div id="loading-screen" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 hidden">
+        <img src="/static/loading.gif" alt="Loading..." class="w-16 h-16">
+    </div>
+
+    <script>
+        document.getElementById("add-donor-btn").addEventListener("click", async function() {
+            const name = document.getElementById("name").value;
+            const bloodType = document.getElementById("blood-type").value;
+            const location = document.getElementById("location").value;
+            const phone = document.getElementById("phone").value;
+            const loadingScreen = document.getElementById("loading-screen");
+
+            if (!name || !bloodType || !location || !phone) {
+                alert("❌ All fields are required!");
+                return;
+            }
+
+            loadingScreen.classList.remove("hidden"); // Show loading screen
+
+            try {
+                const response = await fetch("https://blood-donation-oe1d.onrender.com/add_donor", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, blood_type: bloodType, location, phone })
+                });
+
+                const text = await response.text(); // Get raw response text
+                console.log("Raw Response:", text); // Debugging
+
+                let result;
+                try {
+                    result = JSON.parse(text); // Manually parse JSON
+                } catch (err) {
+                    console.error("JSON Parse Error:", err);
+                    alert("❌ Server returned an unexpected response!");
+                    return;
+                }
+
+                if (result.success) {
+                    alert("✅ Donor added successfully!");
+                    window.location.href = "/dashboard"; // Redirect to Dashboard
+                } else {
+                    alert("❌ Error: " + result.error);
+                }
+            } catch (error) {
+                alert("❌ Error: " + error.message);
+            } finally {
+                loadingScreen.classList.add("hidden"); // Hide loading
+            }
+        });
+    </script>
+
+</body>
+</html>
