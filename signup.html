@@ -33,19 +33,68 @@
         <img src="loading.gif" alt="Loading..." class="w-16 h-16">
     </div>
 
+    <!-- Custom Popup Modal -->
+    <div id="popup" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <p id="popup-message" class="text-gray-700 text-lg"></p>
+            <button onclick="closePopup()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">OK</button>
+        </div>
+    </div>
+
     <script>
+        function showPopup(message) {
+            document.getElementById("popup-message").textContent = message;
+            document.getElementById("popup").classList.remove("hidden");
+            setTimeout(closePopup, 3000); // Auto-close after 3 sec
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.add("hidden");
+        }
+
+        function sanitizeInput(input) {
+            return input.replace(/<script.*?>.*?<\/script>/gi, ""); // Remove script tags
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function isStrongPassword(password) {
+            return password.length >= 8 &&
+                   /[A-Z]/.test(password) &&
+                   /[a-z]/.test(password) &&
+                   /[0-9]/.test(password) &&
+                   /[!@#$%^&*]/.test(password);
+        }
+
         document.getElementById("signup-btn").addEventListener("click", async function() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const confirmPassword = document.getElementById("confirm-password").value;
+            let email = document.getElementById("email").value.trim();
+            let password = document.getElementById("password").value.trim();
+            let confirmPassword = document.getElementById("confirm-password").value.trim();
             const loadingScreen = document.getElementById("loading-screen");
 
+            // Input validation
+            if (!email || !password || !confirmPassword) {
+                showPopup("❌ All fields are required!");
+                return;
+            }
+            if (!isValidEmail(email)) {
+                showPopup("❌ Invalid email format!");
+                return;
+            }
+            if (!isStrongPassword(password)) {
+                showPopup("❌ Password must be 8+ chars, include uppercase, lowercase, number & symbol!");
+                return;
+            }
             if (password !== confirmPassword) {
-                alert("❌ Passwords do not match!");
+                showPopup("❌ Passwords do not match!");
                 return;
             }
 
-            loadingScreen.classList.remove("hidden"); // Show loading screen
+            email = sanitizeInput(email);
+            password = sanitizeInput(password);
+            loadingScreen.classList.remove("hidden"); // Show loading
 
             try {
                 const response = await fetch("https://blood-donation-backend-zo8f.onrender.com/signup", {
@@ -55,16 +104,17 @@
                 });
 
                 const result = await response.json();
+
                 if (result.success) {
-                    alert("✅ Signup Successful! Redirecting to login...");
-                    window.location.href = "/"; // Redirect to login
+                    showPopup("✅ Signup Successful! Redirecting...");
+                    setTimeout(() => window.location.href = "/", 2000);
                 } else {
-                    alert("❌ Signup Failed: " + result.error);
+                    showPopup("❌ Signup Failed: " + result.error);
                 }
             } catch (error) {
-                alert("❌ Error: " + error.message);
+                showPopup("❌ Network Error: " + error.message);
             } finally {
-                loadingScreen.classList.add("hidden"); // Hide loading
+                loadingScreen.classList.add("hidden"); // Hide loading screen
             }
         });
     </script>
