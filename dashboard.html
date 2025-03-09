@@ -11,28 +11,63 @@
     <div class="bg-white p-8 rounded-lg shadow-lg w-96 text-center">
         <h2 class="text-2xl font-bold text-red-600 mb-6">Dashboard</h2>
 
-        <button onclick="location.href='/add_donor'"
+        <button onclick="navigate('/add_donor')"
             class="w-full bg-red-500 text-white py-2 rounded mb-4 hover:bg-red-600 transition">
             ➕ Add Donor
         </button>
 
-        <button onclick="location.href='/search_blood'"
+        <button onclick="navigate('/search_blood')"
             class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">
             🔍 Search for Blood Type
         </button>
 
-        <button onclick="logout()" class="w-full bg-gray-500 text-white py-2 rounded mt-6 hover:bg-gray-600 transition">
+        <button onclick="confirmLogout()" class="w-full bg-gray-500 text-white py-2 rounded mt-6 hover:bg-gray-600 transition">
             🚪 Logout
         </button>
     </div>
 
+    <!-- Loading Screen (Hidden Initially) -->
+    <div id="loading-screen" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 hidden">
+        <img src="loading.gif" alt="Loading..." class="w-16 h-16">
+    </div>
+
+    <!-- Custom Popup Modal -->
+    <div id="popup" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <p id="popup-message" class="text-gray-700 text-lg"></p>
+            <button onclick="closePopup()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">OK</button>
+        </div>
+    </div>
+
     <script>
-        function logout() {
-            alert("✅ Logged out successfully!");
-            window.location.href = "/"; // Redirect to login
+        function showPopup(message, callback = null) {
+            document.getElementById("popup-message").textContent = message;
+            document.getElementById("popup").classList.remove("hidden");
+
+            setTimeout(() => {
+                closePopup();
+                if (callback) callback();
+            }, 2000); // Auto-close after 2 seconds
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.add("hidden");
+        }
+
+        function navigate(url) {
+            document.getElementById("loading-screen").classList.remove("hidden"); // Show loading
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000); // Simulate loading
+        }
+
+        function confirmLogout() {
+            showPopup("✅ Logged out successfully!", () => {
+                document.getElementById("loading-screen").classList.remove("hidden"); // Show loading
+                setTimeout(() => window.location.href = "/", 1000);
+            });
         }
     </script>
 
 </body>
 </html>
-
