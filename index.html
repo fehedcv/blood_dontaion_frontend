@@ -11,9 +11,6 @@
     <div class="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 class="text-2xl font-bold text-red-600 text-center mb-6">Login</h2>
 
-        <!-- Error & Success Messages -->
-        <div id="message-box" class="hidden text-white p-3 rounded text-center mb-4"></div>
-
         <input type="email" id="email" placeholder="Enter your email"
             class="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-red-500">
 
@@ -33,14 +30,23 @@
         <img src="loading.gif" alt="Loading..." class="w-16 h-16">
     </div>
 
-    <script>
-        function showMessage(message, type) {
-            const messageBox = document.getElementById("message-box");
-            messageBox.textContent = message;
-            messageBox.className = `text-white p-3 rounded text-center mb-4 ${type === 'error' ? 'bg-red-500' : 'bg-green-500'}`;
-            messageBox.classList.remove("hidden");
+    <!-- Custom Popup Modal -->
+    <div id="popup" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <p id="popup-message" class="text-gray-700 text-lg"></p>
+            <button onclick="closePopup()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">OK</button>
+        </div>
+    </div>
 
-            setTimeout(() => messageBox.classList.add("hidden"), 3000);
+    <script>
+        function showPopup(message) {
+            document.getElementById("popup-message").textContent = message;
+            document.getElementById("popup").classList.remove("hidden");
+            setTimeout(closePopup, 3000); // Auto-close after 3 sec
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.add("hidden");
         }
 
         function sanitizeInput(input) {
@@ -54,15 +60,15 @@
 
             // Input validation
             if (!email || !password) {
-                showMessage("❌ Please enter both email and password!", "error");
+                showPopup("❌ Please enter both email and password!");
                 return;
             }
             if (!email.match(/^\S+@\S+\.\S+$/)) {
-                showMessage("❌ Invalid email format!", "error");
+                showPopup("❌ Invalid email format!");
                 return;
             }
             if (password.length < 6) {
-                showMessage("❌ Password must be at least 6 characters!", "error");
+                showPopup("❌ Password must be at least 6 characters!");
                 return;
             }
 
@@ -84,17 +90,17 @@
                     const result = JSON.parse(text); // Try parsing JSON manually
 
                     if (result.success) {
-                        showMessage("✅ Login Successful! Redirecting...", "success");
+                        showPopup("✅ Login Successful! Redirecting...");
                         setTimeout(() => window.location.href = "/dashboard", 2000);
                     } else {
-                        showMessage("❌ Login Failed: " + result.message, "error");
+                        showPopup("❌ Login Failed: " + result.message);
                     }
                 } catch (jsonError) {
                     console.error("❌ JSON Parsing Error:", jsonError);
-                    showMessage("❌ Server error: Unable to parse response.", "error");
+                    showPopup("❌ Server error: Unable to parse response.");
                 }
             } catch (error) {
-                showMessage("❌ Network Error: " + error.message, "error");
+                showPopup("❌ Network Error: " + error.message);
             } finally {
                 loadingScreen.classList.add("hidden"); // Hide loading screen
             }
